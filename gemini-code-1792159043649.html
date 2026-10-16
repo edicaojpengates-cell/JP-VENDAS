@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JP Engates · Controle de Vendas</title>
+<style>
+:root{--preto:#0b0b0c;--grafite:#1a1b1e;--cinza:#2a2b30;--vermelho:#d61f26;--branco:#f5f5f5;--muted:#9a9ca3}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--preto);color:var(--branco);min-height:100vh}
+header{background:linear-gradient(180deg,#000,#141416);border-bottom:3px solid var(--vermelho);padding:18px 24px;display:flex;align-items:center;gap:20px;flex-wrap:wrap}
+.logo{width:150px;height:auto}
+header h1{font-size:1.15rem;font-weight:600;letter-spacing:.4px}
+header p{color:var(--muted);font-size:.85rem;margin-top:2px}
+main{max-width:1200px;margin:0 auto;padding:24px;display:grid;gap:20px}
+.card{background:var(--grafite);border:1px solid var(--cinza);border-radius:14px;padding:20px}
+.card h2{font-size:1rem;margin-bottom:16px;display:flex;align-items:center;gap:10px}
+.card h2::before{content:"";width:4px;height:18px;background:var(--vermelho);border-radius:2px}
+.grid-2{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:20px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px;margin-bottom:18px}
+.kpi{background:var(--cinza);border-radius:10px;padding:14px}
+.kpi span{color:var(--muted);font-size:.75rem;text-transform:uppercase;letter-spacing:.6px}
+.kpi strong{display:block;font-size:1.35rem;margin-top:6px}
+.kpi small{color:var(--muted);font-size:.8rem}
+label{display:block;font-size:.8rem;color:var(--muted);margin-bottom:4px}
+input,select{width:100%;background:var(--preto);border:1px solid var(--cinza);color:var(--branco);padding:10px 12px;border-radius:8px;font-size:.95rem}
+input:focus,select:focus{outline:none;border-color:var(--vermelho)}
+.form-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;align-items:end;margin-bottom:14px}
+.toolbar{display:flex;gap:12px;align-items:end;flex-wrap:wrap;margin-bottom:18px}
+.toolbar > div{min-width:200px}
+button{background:var(--vermelho);color:#fff;border:0;padding:10px 18px;border-radius:8px;font-weight:600;cursor:pointer;font-size:.92rem}
+button:hover{filter:brightness(1.12)}
+button.sec{background:var(--cinza)}
+button.del{background:transparent;color:var(--vermelho);padding:4px 8px;font-size:1rem}
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:.9rem}
+th,td{text-align:left;padding:10px 8px;border-bottom:1px solid var(--cinza);white-space:nowrap}
+th{color:var(--muted);font-weight:500;font-size:.75rem;text-transform:uppercase;letter-spacing:.5px}
+.num{text-align:right}
+.badge{display:inline-block;padding:3px 10px;border-radius:999px;font-size:.75rem;font-weight:700}
+.otimo{background:#14532d;color:#86efac}
+.bom{background:#1e3a1e;color:#bbf7d0}
+.regular{background:#422006;color:#fde68a}
+.ruim{background:#431407;color:#fdba74}
+.pessimo{background:#450a0a;color:#fca5a5}
+.semana{background:var(--cinza);border-radius:10px;padding:14px;display:flex;flex-direction:column;gap:10px}
+.semana-top{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.progress{height:8px;background:var(--preto);border-radius:999px;overflow:hidden}
+.progress div{height:100%;background:var(--vermelho);transition:width .4s}
+.status-msg{margin-top:14px;padding:12px 14px;border-left:3px solid var(--vermelho);background:var(--cinza);border-radius:8px;font-size:.92rem;line-height:1.5}
+.muted{color:var(--muted);font-size:.85rem}
+.empty{color:var(--muted);text-align:center;padding:24px}
+.chart{display:flex;align-items:flex-end;gap:10px;height:200px;padding-top:10px}
+.col{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;gap:6px;min-width:0}
+.bar{width:100%;max-width:54px;background:linear-gradient(180deg,var(--vermelho),#7f1d1d);border-radius:6px 6px 0 0;min-height:2px}
+.bar.sel{background:linear-gradient(180deg,#fff,#9ca3af)}
+.col-val{font-size:.7rem;color:var(--muted);white-space:nowrap}
+.col-lbl{font-size:.72rem;color:var(--muted)}
+footer{text-align:center;color:var(--muted);font-size:.8rem;padding:24px}
+</style>
+</head>
+<body>
+
+<header>
+  <svg class="logo" viewBox="0 0 300 150" xmlns="http://www.w3.org/2000/svg" aria-label="JP Engates">
+    <text x="8" y="92" font-family="Arial Black,Arial,sans-serif" font-weight="900" font-style="italic" font-size="92" fill="#d61f26">JP</text>
+    <text x="6" y="140" font-family="Arial Black,Arial,sans-serif" font-weight="900" font-size="40" fill="#ffffff" letter-spacing="1">ENGATES</text>
+  </svg>
+  <div>
+    <h1>Controle de Vendas</h1>
+    <p>Registre vendas, acompanhe cada semana e feche o mês com faturamento e comparativos</p>
+  </div>
+</header>
+
+<main>
+
+  <!-- Seletor de mês e meta -->
+  <section class="card">
+    <div class="toolbar">
+      <div>
+        <label for="mes">Mês em análise</label>
+        <select id="mes"></select>
+      </div>
+      <div>
+        <label for="meta">Meta mensal (R$)</label>
+        <input type="number" id="meta" min="0" step="100">
+      </div>
+      <div style="min-width:auto">
+        <button class="sec" id="btnExportar">Exportar CSV</button>
+      </div>
+    </div>
+
+    <div class="kpis">
+      <div class="kpi"><span>Faturamento do mês</span><strong id="kTotal">R$ 0,00</strong><small id="kTotalSub"></small></div>
+      <div class="kpi"><span>Itens vendidos</span><strong id="kQtd">0</strong><small id="kLanc"></small></div>
+      <div class="kpi"><span>Ticket médio</span><strong id="kTicket">R$ 0,00</strong><small>por item vendido</small></div>
+      <div class="kpi"><span>Situação do mês</span><strong id="kSituacao">—</strong><small id="kBase"></small></div>
+    </div>
+
+    <div id="msgMes"></div>
+  </section>
+
+  <div class="grid-2">
+    <!-- Lançar venda -->
+    <section class="card">
+      <h2>Registrar venda</h2>
+      <form id="formVenda">
+        <div class="form-row">
+          <div><label for="data">Data</label><input type="date" id="data" required></div>
+          <div><label for="produto">Produto</label><input type="text" id="produto" placeholder="Ex.: Engate quinta roda" required></div>
+        </div>
+        <div class="form-row">
+          <div><label for="qtd">Quantidade</label><input type="number" id="qtd" min="1" step="1" value="1" required></div>
+          <div><label for="valor">Valor unitário (R$)</label><input type="number" id="valor" min="0" step="0.01" required></div>
+        </div>
+        <div class="form-row">
+          <div><label for="cliente">Cliente (opcional)</label><input type="text" id="cliente" placeholder="Nome ou revenda"></div>
+          <div><label for="telefone">Telefone do cliente</label><input type="tel" id="telefone" placeholder="(00) 00000-0000" inputmode="tel"></div>
+        </div>
+        <div class="form-row">
+          <div><label for="vendedor">Nome do vendedor</label><input type="text" id="vendedor" placeholder="Quem realizou a venda" required></div>
+        </div>
+        <button type="submit">Adicionar venda</button>
+      </form>
+    </section>
+
+    <!-- Semanas -->
+    <section class="card">
+      <h2>Acompanhamento semanal</h2>
+      <div id="semanas"></div>
+    </section>
+  </div>
+
+  <!-- Lançamentos do mês -->
+  <section class="card">
+    <h2>Vendas do mês selecionado</h2>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Data</th><th>Produto</th><th>Cliente</th><th>Telefone</th><th>Vendedor</th><th class="num">Qtd</th><th class="num">Unitário</th><th class="num">Total</th><th></th></tr>
+        </thead>
+        <tbody id="tabelaVendas"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Comparativo -->
+  <section class="card">
+    <h2>Comparativo entre meses</h2>
+    <div class="chart" id="grafico"></div>
+    <div class="table-wrap" style="margin-top:18px">
+      <table>
+        <thead>
+          <tr><th>Mês</th><th class="num">Itens</th><th class="num">Faturamento</th><th class="num">Variação vs. mês anterior</th><th>Classificação</th><th>Meses com faturamento parecido</th></tr>
+        </thead>
+        <tbody id="tabelaMeses"></tbody>
+      </table>
+    </div>
+  </section>
+
+</main>
+
+<footer>JP Engates · Hospedado no GitHub Pages</footer>
+
+<script>
+const KEY = 'jpengates_vendas_v1';
+const hoje = new Date();
+const pad = n => String(n).padStart(2, '0');
+const hojeISO = `${hoje.getFullYear()}-${pad(hoje.getMonth()+1)}-${pad(hoje.getDate())}`;
+const mesAtual = hojeISO.slice(0, 7);
+
+let db = JSON.parse(localStorage.getItem(KEY) || '{"vendas":[],"meta":50000}');
+const salvar = () => localStorage.setItem(KEY, JSON.stringify(db));
+
+const $ = id => document.getElementById(id);
+const brl = v => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const totalVenda = v => v.qtd * v.valor;
+
+function nomeMes(m) {
+  const [y, mo] = m.split('-');
+  const nomes = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+  return `${nomes[+mo - 1]} de ${y}`;
+}
+function vendasDoMes(m) { return db.vendas.filter(v => v.data.startsWith(m)); }
+function totalMes(m) { return vendasDoMes(m).reduce((a, v) => a + totalVenda(v), 0); }
+function qtdMes(m) { return vendasDoMes(m).reduce((a, v) => a + v.qtd, 0); }
+function mesesComDados() {
+  const s = new Set(db.vendas.map(v => v.data.slice(0, 7)));
+  s.add(mesAtual);
+  return [...s].sort();
+}
+
+function classificar(r) {
+  if (r >= 1.2) return ['Ótimo', 'otimo'];
+  if (r >= 1.0) return ['Bom', 'bom'];
+  if (r >= 0.8) return ['Regular', 'regular'];
+  if (r >= 0.6) return ['Ruim', 'ruim'];
+  return ['Péssimo', 'pessimo'];
+}
+function badge(r) {
+  const [t, c] = classificar(r);
+  return `<span class="badge ${c}">${t}</span>`;
+}
+
+function preencherMeses() {
+  const atual = $('mes').value || mesAtual;
+  const meses = mesesComDados();
+  $('mes').innerHTML = meses.slice().reverse().map(m => `<option value="${m}">${nomeMes(m)}</option>`).join('');
+  $('mes').value = meses.includes(atual) ? atual : mesAtual;
+}
+
+function renderMes() {
+  const m = $('mes').value;
+  const meta = db.meta;
+  const total = totalMes(m);
+  const qtd = qtdMes(m);
+  const lanc = vendasDoMes(m).length;
+
+  const anteriores = mesesComDados().filter(x => x < m && totalMes(x) > 0);
+  const base = anteriores.length
+    ? anteriores.reduce((a, x) => a + totalMes(x), 0) / anteriores.length
+    : meta;
+  const baseTxt = anteriores.length
+    ? `Referência: média de ${anteriores.length} mês(es) anteriores`
+    : 'Referência: meta mensal';
+
+  const r = base > 0 ? total / base : 0;
+  const [sit, cls] = classificar(r);
+
+  $('kTotal').textContent = brl(total);$('kTotalSub').textContent = total > 0 ? `${Math.round(r * 100)}% da referência` : 'Nenhuma venda lançada';
+  $('kQtd').textContent = qtd;
+  $('kLanc').textContent = `${lanc} lançamento(s)`;
+  $('kTicket').textContent = brl(qtd > 0 ? total / qtd : 0);
+  $('kSituacao').innerHTML = total > 0 ? `<span class="badge ${cls}">${sit}</span>` : '—';
+  $('kBase').textContent = baseTxt;
+
+  const anteriorImediato = mesesComDados().filter(x => x < m).pop();
+  let msgComp = '';
+  if (anteriorImediato) {
+    const tAnt = totalMes(anteriorImediato);
+    if (tAnt > 0) {
+      const var_ = ((total - tAnt) / tAnt) * 100;
+      msgComp = `Em relação a ${nomeMes(anteriorImediato)}, o faturamento ${var_ >= 0 ? 'subiu' : 'caiu'} <strong>${Math.abs(var_).toFixed(1)}%</strong>.`;
+    }
+  }
+
+  const textos = {
+    otimo: 'Mês excelente: as vendas ficaram bem acima do padrão.',
+    bom: 'Mês bom: as vendas ficaram no nível esperado ou acima.',
+    regular: 'Mês regular: as vendas ficaram um pouco abaixo do esperado.',
+    ruim: 'Mês ruim: as vendas ficaram bem abaixo do padrão. Vale revisar a estratégia.',
+    pessimo: 'Mês péssimo: o faturamento ficou muito abaixo do padrão. Atenção urgente.'
+  };
+  $('msgMes').innerHTML = total > 0
+    ? `<div class="status-msg"><strong>${textos[cls]}</strong><br>${msgComp}</div>`
+    : `<div class="empty">Ainda não há vendas registradas neste mês.</div>`;
+}
+
+function renderSemanas() {
+  const m = $('mes').value;
+  const [y, mo] = m.split('-').map(Number);
+  const dias = new Date(y, mo, 0).getDate();
+  const faixas = [[1,7],[8,14],[15,21],[22,dias]];
+  const metaSemana = db.meta / 4;
+  const vendas = vendasDoMes(m);
+
+  const totais = faixas.map(([ini, fim]) => vendas
+    .filter(v => { const d = +v.data.slice(8, 10); return d >= ini && d <= fim; })
+    .reduce((a, v) => a + totalVenda(v), 0));
+
+  const hojeDia = (hojeISO.startsWith(m)) ? +hojeISO.slice(8, 10) : null;
+
+  $('semanas').innerHTML = faixas.map(([ini, fim], i) => {
+    const t = totais[i];
+    const r = metaSemana > 0 ? t / metaSemana : 0;
+    const pct = Math.min(100, Math.round(r * 100));
+    const passou = hojeDia === null ? true : hojeDia > fim;
+    const emAndamento = hojeDia !== null && hojeDia >= ini && hojeDia <= fim;
+    let msg;
+    if (t === 0) msg = passou ? 'Nenhuma venda nesta semana.' : 'Semana sem vendas até agora.';
+    else if (r >= 1) msg = 'Meta semanal batida.';
+    else msg = `Faltam ${brl(metaSemana - t)} para a meta semanal.`;
+    const comAnt = i > 0 && totais[i-1] > 0 && t > 0
+      ? ` · ${((t - totais[i-1]) / totais[i-1] * 100) >= 0 ? '▲' : '▼'} ${Math.abs((t - totais[i-1]) / totais[i-1] * 100).toFixed(0)}% vs. semana anterior`
+      : '';
+    return `
+      <div class="semana">
+        <div class="semana-top">
+          <strong>Semana ${i+1} <span class="muted">(dias ${ini}–${fim})</span></strong>
+          ${t > 0 || passou ? badge(r) : (emAndamento ? '<span class="muted">em andamento</span>' : '')}
+        </div>
+        <div><strong>${brl(t)}</strong> <span class="muted">de ${brl(metaSemana)}</span></div>
+        <div class="progress"><div style="width:${pct}%"></div></div>
+        <div class="muted">${msg}${comAnt}</div>
+      </div>`;
+  }).join('<div style="height:10px"></div>');
+}
+
+function renderTabela() {
+  const m = $('mes').value;
+  const lista = vendasDoMes(m).sort((a, b) => b.data.localeCompare(a.data));
+  $('tabelaVendas').innerHTML = lista.length
+    ? lista.map(v => `
+      <tr>
+        <td>${v.data.split('-').reverse().join('/')}</td>
+        <td>${esc(v.produto)}</td>
+        <td>${esc(v.cliente) || '<span class="muted">—</span>'}</td>
+        <td>${esc(v.telefone) || '<span class="muted">—</span>'}</td>
+        <td>${esc(v.vendedor) || '<span class="muted">—</span>'}</td>
+        <td class="num">${v.qtd}</td>
+        <td class="num">${brl(v.valor)}</td>
+        <td class="num"><strong>${brl(totalVenda(v))}</strong></td>
+        <td><button class="del" title="Excluir" onclick="excluir('${v.id}')">✕</button></td>
+      </tr>`).join('')
+    : `<tr><td colspan="9" class="empty">Nenhuma venda neste mês.</td></tr>`;
+}
+
+function renderComparativo() {
+  const meses = mesesComDados();
+  const totais = meses.map(totalMes);
+  const max = Math.max(...totais, 1);
+  const sel = $('mes').value;
+
+  $('grafico').innerHTML = meses.slice(-12).map((m, i, arr) => {
+    const t = totalMes(m);
+    const h = Math.round((t / max) * 100);
+    return `<div class="col">
+      <div class="col-val">${t > 0 ? brl(t) : ''}</div>
+      <div class="bar ${m === sel ? 'sel' : ''}" style="height:${h}%"></div>
+      <div class="col-lbl">${m.slice(5)}/${m.slice(2,4)}</div>
+    </div>`;
+  }).join('') || '<div class="empty">Sem dados ainda.</div>';
+
+  $('tabelaMeses').innerHTML = meses.slice().reverse().map(m => {
+    const t = totalMes(m);
+    const idx = meses.indexOf(m);
+    const prev = idx > 0 ? totais[idx - 1] : 0;
+    let varTxt = '<span class="muted">—</span>';
+    if (prev > 0) {
+      const v = (t - prev) / prev * 100;
+      varTxt = `<span style="color:${v >= 0 ? '#86efac' : '#fca5a5'}">${v >= 0 ? '▲' : '▼'} ${Math.abs(v).toFixed(1)}%</span>`;
+    }
+    const parecidos = meses.filter(x => x !== m && t > 0 && totalMes(x) > 0 && Math.abs(totalMes(x) - t) / t <= 0.05);
+    const classif = t > 0 ? badge(db.meta > 0 ? t / db.meta : 0) : '<span class="muted">—</span>';
+    return `<tr>
+      <td>${nomeMes(m)}${m === mesAtual ? ' <span class="muted">(atual)</span>' : ''}</td>
+      <td class="num">${qtdMes(m)}</td>
+      <td class="num"><strong>${brl(t)}</strong></td>
+      <td class="num">${varTxt}</td>
+      <td>${classif}</td>
+      <td class="muted">${parecidos.length ? parecidos.map(x => nomeMes(x)).join(', ') : 'Nenhum mês com faturamento parecido (±5%)'}</td>
+    </tr>`;
+  }).join('');
+}
+
+function excluir(id) {
+  if (!confirm('Excluir esta venda?')) return;
+  db.vendas = db.vendas.filter(v => v.id !== id);
+  salvar(); renderTudo();
+}
+
+$('formVenda').addEventListener('submit', e => {
+  e.preventDefault();
+  const venda = {
+    id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+    data: $('data').value,
+    produto: $('produto').value.trim(),
+    qtd: parseInt($('qtd').value, 10),
+    valor: parseFloat($('valor').value),
+    cliente: $('cliente').value.trim(),
+    telefone: $('telefone').value.trim(),
+    vendedor: $('vendedor').value.trim()
+  };
+  db.vendas.push(venda);
+  salvar();
+  preencherMeses();
+  $('mes').value = venda.data.slice(0, 7);$('produto').value = ''; $('qtd').value = 1; $('valor').value = ''; $('cliente').value = '';$('telefone').value = '';
+  renderTudo();
+});
+
+$('mes').addEventListener('change', renderTudo);$('meta').addEventListener('change', () => {
+  db.meta = parseFloat($('meta').value) || 0;
+  salvar(); renderTudo();
+});
+
+$('btnExportar').addEventListener('click', () => {
+  const linhas = [['Data','Produto','Cliente','Telefone do cliente','Vendedor','Quantidade','Valor unitario','Total']]
+    .concat(db.vendas.slice().sort((a,b) => a.data.localeCompare(b.data))
+      .map(v => [
+        v.data, v.produto, v.cliente || '', v.telefone || '', v.vendedor || '',
+        v.qtd, v.valor.toFixed(2), totalVenda(v).toFixed(2)
+      ]));
+  const csv = linhas.map(l => l.map(c => `"${String(c).replace(/"/g,'""')}"`).join(';')).join('\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8' }));
+  a.download = 'vendas-jp-engates.csv';
+  a.click();
+});
+
+function renderTudo() {
+  renderMes();
+  renderSemanas();
+  renderTabela();
+  renderComparativo();
+}
+
+$('data').value = hojeISO;
+$('meta').value = db.meta;
+preencherMeses();
+renderTudo();
+</script>
+</body>
+</html>
